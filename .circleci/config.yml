@@ -2,8 +2,7 @@ version: 2.1
 jobs:
   docker-build-and-scan:
     docker:
-#      - image: circleci/node:10.19.0-stretch
-      - image: circleci/python:3.6
+      - image: circleci/node:10.19.0-stretch
     working_directory: ~/build
     steps:
       - checkout
