@@ -6,7 +6,7 @@ jobs:
     working_directory: ~/build
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
           docker_layer_cacheing: true
       - run: 'docker build -t $MYREPO/myimage:01 .'
       - run: 'mkdir -p workspace' 
