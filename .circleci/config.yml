@@ -1,0 +1,38 @@
+version: 2.1
+jobs:
+  docker-build-and-scan:
+    docker:
+      - image: circleci/node:10.19.0-stretch
+    working_directory: ~/build
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: 'docker build -t MYREPO/myimage:01 .'
+      - run: 'mkdir -p workspace' 
+      - run: 'docker save MYREPO/myimage:01 -o workspace/image.tar'
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - image.tar
+      - run: 'curl -k -u $TL_USER:$TL_PW --output ./twistcli $TL_CONSOLE/api/v1/util/twistcli'
+      - run: 'chmod a+x ./twistcli'
+      - run: 'docker load -i workspace/image.tar'
+      - run: './twistcli images scan --details -address $TL_CONSOLE -u $TL_USER -p $TL_PW --vulnerability-threshold high --compliance-threshold high --only-fixed MYREPO/myimage:01'
+  docker-push:
+    executor: twistcli/default
+    steps:
+      - checkout
+      - run: 'docker build -t MYREPO/myimage:01 .'
+      - run:
+          name: Push Image
+          command: |
+            echo $DOCKER_PW | docker login --username $DOCKER_USER --password-stdin docker.io
+            docker push docker.io/MYREPO/myimage:01
+workflows:
+  build-scan-push:
+    jobs:
+      - docker-build-and-scan
+      - docker-push:
+          requires:
+            - docker-build-and-scan
+
