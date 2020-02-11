@@ -10,10 +10,10 @@ jobs:
       - run: 'docker build -t $MYREPO/myimage:01 .'
       - run: 'mkdir -p workspace' 
       - run: 'docker save $MYREPO/myimage:01 -o workspace/image.tar'
-      - persist_to_workspace:
-          root: workspace
-          paths:
-            - image.tar
+#      - persist_to_workspace:
+#          root: workspace
+#          paths:
+#            - image.tar
       - run: 'curl -k -u $TL_USER:$TL_PW --output ./twistcli $TL_CONSOLE/api/v1/util/twistcli'
       - run: 'chmod a+x ./twistcli'
       - run: 'docker load -i workspace/image.tar'
