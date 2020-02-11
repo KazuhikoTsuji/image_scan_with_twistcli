@@ -10,10 +10,14 @@ jobs:
           docker_layer_cacheing: true
       - run: 'docker build -t $MYREPO/myimage:01 .'
       - run: 'mkdir -p workspace' 
-#      - run: 'docker save $MYREPO/myimage:01 -o workspace/image.tar'
+      - run: 'docker save $MYREPO/myimage:01 -o workspace/image.tar'
+#      - persist_to_workspace:
+#          root: workspace
+#          paths:
+#            - image.tar
       - run: 'curl -k -u $TL_USER:$TL_PW --output ./twistcli $TL_CONSOLE/api/v1/util/twistcli'
       - run: 'chmod a+x ./twistcli'
-#      - run: 'docker load -i workspace/image.tar'
+      - run: 'docker load -i workspace/image.tar'
       - run: './twistcli images scan --details -address $TL_CONSOLE -u $TL_USER -p $TL_PW --vulnerability-threshold high --compliance-threshold high --only-fixed $MYREPO/myimage:01'
   docker-push:
     docker:
