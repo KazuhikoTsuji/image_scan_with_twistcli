@@ -9,7 +9,6 @@ jobs:
       - run: 'curl -k -u $TL_USER:$TL_PW --output ./twistcli $TL_CONSOLE/api/v1/util/twistcli'
       - run: 'chmod a+x ./twistcli'
       - setup_remote_docker:
-          docker_layer_cacheing: true
       - run: 'docker build -t $MYREPO/myimage:01 .'
       - run: './twistcli images scan --details -address $TL_CONSOLE -u $TL_USER -p $TL_PW --vulnerability-threshold high --compliance-threshold high --only-fixed $MYREPO/myimage:01'
 #      - run: 'mkdir -p workspace' 
