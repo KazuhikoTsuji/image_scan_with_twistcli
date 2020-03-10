@@ -1,36 +1,43 @@
 version: 2.1
 jobs:
-  docker-build-and-scan:
+  docker-build:
     docker:
       - image: circleci/node:10.19.0-stretch
-    working_directory: ~/build
     steps:
       - checkout
-      - run: 'curl -k -u $TL_USER:$TL_PASS --output ./twistcli $TL_CONSOLE_URL/api/v1/util/twistcli'
-      - run: 'chmod a+x ./twistcli'
-      - setup_remote_docker:
-      - run: 'docker build -t $MYREPO/myimage:01 .'
-      - run: './twistcli images scan --details -address $TL_CONSOLE_URL -u $TL_USER -p $TL_PASS --vulnerability-threshold high --compliance-threshold high --only-fixed $MYREPO/myimage:01'
-#      - run: 'mkdir -p workspace' 
-#      - run: 'docker save $MYREPO/myimage:01 -o workspace/image.tar'
-#      - run: 'docker load -i workspace/image.tar'
-  docker-push:
-    docker:
-      - image: circleci/node:10.19.0-stretch
-    working_directory: ~/build
-    steps:
-      - checkout
-      - run: 'docker build -t $MYREPO/myimage:01 .'
+      - setup_remote_docker
       - run:
-          name: Push Image
+          name: Build
           command: |
+            TAG='01'
+            docker build --no-cache -t $MYREPO/$MYIMAGE:$TAG .
+            mkdir -p workspace
+            docker save $MYREPO/$MYIMAGE:$TAG -o workspace/image.tar
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - image.tar
+  scan-image:
+    machine: true
+    steps:
+      - checkout
+      - attach_workspace:
+          at: workspace
+      - run:
+          name: Scan
+          command: |
+            TAG='01'
+            docker load -i workspace/image.tar
+            curl -k -u $TL_USER:$TL_PASS --output ./twistcli $TL_CONSOLE_URL/api/v1/util/twistcli
+            chmod a+x ./twistcli
+            ./twistcli images scan --details -address $TL_CONSOLE_URL -u $TL_USER -p $TL_PASS --vulnerability-threshold high --compliance-threshold critical --only-fixed $MYREPO/$MYIMAGE:$TAG	
             echo $DOCKER_PW | docker login --username $DOCKER_USER --password-stdin docker.io
-            docker push docker.io/$MYREPO/myimage:01
+            docker push docker.io/$MYREPO/$MYIMAGE:$TAG
 workflows:
-  build-scan-push:
+  Build-Scan-Push:
     jobs:
-      - docker-build-and-scan
-      - docker-push:
+      - docker-build
+      - scan-image:
           requires:
-            - docker-build-and-scan
-
+            - docker-build
+          context: tl_scan_context
