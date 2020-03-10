@@ -15,10 +15,10 @@ jobs:
 #          root: workspace
 #          paths:
 #            - image.tar
-      - run: 'curl -k -u $TL_USER:$TL_PW --output ./twistcli $TL_CONSOLE/api/v1/util/twistcli'
+      - run: 'curl -k -u $TL_USER:$TL_PASS --output ./twistcli $TL_CONSOLE_URL/api/v1/util/twistcli'
       - run: 'chmod a+x ./twistcli'
       - run: 'docker load -i workspace/image.tar'
-      - run: './twistcli images scan --details -address $TL_CONSOLE -u $TL_USER -p $TL_PW --vulnerability-threshold high --compliance-threshold high --only-fixed $MYREPO/myimage:01'
+      - run: './twistcli images scan --details -address $TL_CONSOLE_URL -u $TL_USER -p $TL_PASS --vulnerability-threshold high --compliance-threshold high --only-fixed $MYREPO/myimage:01'
   docker-push:
     docker:
       - image: circleci/node:10.19.0-stretch
